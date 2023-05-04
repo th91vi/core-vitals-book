@@ -4,5 +4,11 @@
   "main": "index.js",
   "author": "Thiago Vieira Pereira <th91vi@gmail.com>",
   "license": "MIT",
-  "workspaces": ["packages/*"]
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "concurrently": "^8.0.1"
+  }
 }
