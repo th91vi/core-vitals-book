@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "ES6",
+    "target": "ES6",
+    "sourceMap": true,
+    "allowJs": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+  }
+}

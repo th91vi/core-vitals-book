@@ -8,6 +8,11 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "--- SERVER SCRIPTS ---": "",
+    "server:dev": "yarn workspace @core-vitals-book/server dev",
+    "server:add": "yarn workspace @core-vitals-book/server add"
+  },
   "dependencies": {
     "concurrently": "^8.0.1"
   }
