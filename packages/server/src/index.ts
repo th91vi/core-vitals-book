@@ -4,6 +4,9 @@ import { resolve } from "path";
 
 import express, { Express } from "express";
 import chalk from "chalk";
+import cors from "cors";
+
+import { corsOptions } from "./config";
 
 dotenv.config({
   path: resolve(__dirname, ".env"),
@@ -12,6 +15,7 @@ dotenv.config({
 const app: Express = express();
 
 app.use(express.json());
+app.use(cors(corsOptions));
 
 app.get("/hc", (req, res) => {
   res.send({ status: "OK" });

@@ -11,7 +11,8 @@
   "scripts": {
     "--- SERVER SCRIPTS ---": "",
     "server:dev": "yarn workspace @core-vitals-book/server dev",
-    "server:add": "yarn workspace @core-vitals-book/server add"
+    "server:add": "yarn workspace @core-vitals-book/server add",
+    "server:add:dev": "yarn workspace @core-vitals-book/server add -D"
   },
   "dependencies": {
     "concurrently": "^8.0.1"
