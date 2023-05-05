@@ -46,7 +46,63 @@ export const getSinglePageSpeedReport = async (req: Request, res: Response) => {
 
     res.status(200).json(data);
   } catch (error) {
-    chalk.red(error);
+    console.log(chalk.red(error));
+    res.status(400).json(error);
+  }
+};
+
+export const getManyPageSpeedReports = async (req: Request, res: Response) => {
+  try {
+    const data = [];
+    const manyOptions = req.body.manyOptions;
+
+    for await (const reportOptions of manyOptions) {
+      const url = reportOptions.url ?? '';
+      const strategy = reportOptions.strategy ?? 'mobile';
+
+      const response = await fetch(
+        `${PAGESPEED_BASE_URL}?key=${GOOGLE_API_KEY}&url=${url}&strategy=${strategy}`
+      );
+      const result = await response.json();
+
+      if (reportOptions?.summary === 'true') {
+        const CUMULATIVE_LAYOUT_SHIFT_SCORE =
+          result?.loadingExperience?.metrics?.CUMULATIVE_LAYOUT_SHIFT_SCORE;
+
+        const EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT =
+          result?.loadingExperience?.metrics
+            ?.EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT;
+
+        const EXPERIMENTAL_TIME_TO_FIRST_BYTE =
+          result?.loadingExperience?.metrics?.EXPERIMENTAL_TIME_TO_FIRST_BYTE;
+
+        const FIRST_CONTENTFUL_PAINT_MS =
+          result?.loadingExperience?.metrics?.FIRST_CONTENTFUL_PAINT_MS;
+
+        const FIRST_INPUT_DELAY_MS =
+          result?.loadingExperience?.metrics?.FIRST_INPUT_DELAY_MS;
+
+        const LARGEST_CONTENTFUL_PAINT_MS =
+          result?.loadingExperience?.metrics?.LARGEST_CONTENTFUL_PAINT_MS;
+
+        data.push({
+          CUMULATIVE_LAYOUT_SHIFT_SCORE,
+          EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT,
+          EXPERIMENTAL_TIME_TO_FIRST_BYTE,
+          FIRST_CONTENTFUL_PAINT_MS,
+          FIRST_INPUT_DELAY_MS,
+          LARGEST_CONTENTFUL_PAINT_MS,
+        });
+
+        continue;
+      }
+
+      data.push(result);
+    }
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.log(chalk.red(error));
     res.status(400).json(error);
   }
 };
