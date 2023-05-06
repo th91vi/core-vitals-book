@@ -4,100 +4,81 @@ import { PAGESPEED_BASE_URL, GOOGLE_API_KEY } from '../config/constants';
 
 export const getSinglePageSpeedReport = async (req: Request, res: Response) => {
   try {
-    const url = req.body.url ?? '';
-    const strategy = req.body.strategy ?? 'mobile';
+    const data = [];
 
-    const response = await fetch(
-      `${PAGESPEED_BASE_URL}?key=${GOOGLE_API_KEY}&url=${url}&strategy=${strategy}`
-    );
-    const data = await response.json();
-
-    if (req.query?.summary === 'true') {
-      const CUMULATIVE_LAYOUT_SHIFT_SCORE =
-        data?.loadingExperience?.metrics?.CUMULATIVE_LAYOUT_SHIFT_SCORE;
-
-      const EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT =
-        data?.loadingExperience?.metrics
-          ?.EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT;
-
-      const EXPERIMENTAL_TIME_TO_FIRST_BYTE =
-        data?.loadingExperience?.metrics?.EXPERIMENTAL_TIME_TO_FIRST_BYTE;
-
-      const FIRST_CONTENTFUL_PAINT_MS =
-        data?.loadingExperience?.metrics?.FIRST_CONTENTFUL_PAINT_MS;
-
-      const FIRST_INPUT_DELAY_MS =
-        data?.loadingExperience?.metrics?.FIRST_INPUT_DELAY_MS;
-
-      const LARGEST_CONTENTFUL_PAINT_MS =
-        data?.loadingExperience?.metrics?.LARGEST_CONTENTFUL_PAINT_MS;
-
-      res.status(200).json({
-        CUMULATIVE_LAYOUT_SHIFT_SCORE,
-        EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT,
-        EXPERIMENTAL_TIME_TO_FIRST_BYTE,
-        FIRST_CONTENTFUL_PAINT_MS,
-        FIRST_INPUT_DELAY_MS,
-        LARGEST_CONTENTFUL_PAINT_MS,
-      });
-
+    if (!Array.isArray(req?.body)) {
+      res
+        .status(400)
+        .json({ errors: [{ message: 'request body must be an array' }] });
       return;
     }
 
-    res.status(200).json(data);
-  } catch (error) {
-    console.log(chalk.red(error));
-    res.status(400).json(error);
-  }
-};
+    for await (const reportOptions of req?.body) {
+      try {
+        if (!reportOptions.url) {
+          res.status(400).json({
+            errors: [{ message: '"url" property must not be empty' }],
+          });
+          return;
+        }
+        if (!/^(https?:\/\/)/.test(reportOptions.url)) {
+          res.status(400).json({
+            errors: [
+              {
+                message: '"url" property must start with http:// or https://',
+                invalidUrl: reportOptions.url,
+              },
+            ],
+          });
+          return;
+        }
 
-export const getManyPageSpeedReports = async (req: Request, res: Response) => {
-  try {
-    const data = [];
-    const manyOptions = req.body.manyOptions;
+        const url = reportOptions.url;
+        const strategy = reportOptions.strategy ?? 'mobile';
 
-    for await (const reportOptions of manyOptions) {
-      const url = reportOptions.url ?? '';
-      const strategy = reportOptions.strategy ?? 'mobile';
+        const response = await fetch(
+          `${PAGESPEED_BASE_URL}?key=${GOOGLE_API_KEY}&url=${url}&strategy=${strategy}`
+        );
+        const result = await response.json();
 
-      const response = await fetch(
-        `${PAGESPEED_BASE_URL}?key=${GOOGLE_API_KEY}&url=${url}&strategy=${strategy}`
-      );
-      const result = await response.json();
+        if (result.error) {
+          console.log(chalk.red(JSON.stringify(result.error.errors, null, 2)));
+          data.push({ errors: result.error.errors });
 
-      if (reportOptions?.summary === 'true') {
-        const CUMULATIVE_LAYOUT_SHIFT_SCORE =
-          result?.loadingExperience?.metrics?.CUMULATIVE_LAYOUT_SHIFT_SCORE;
+          continue;
+        }
 
-        const EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT =
-          result?.loadingExperience?.metrics
-            ?.EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT;
+        if (reportOptions?.summary === 'true') {
+          data.push({
+            summary: {
+              url,
+              strategy,
+              cumulativeLayoutShiftScore:
+                result?.loadingExperience?.metrics
+                  ?.CUMULATIVE_LAYOUT_SHIFT_SCORE,
+              experimentalInteractionToNextPaint:
+                result?.loadingExperience?.metrics
+                  ?.EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT,
+              experimentalTimeToFirstByte:
+                result?.loadingExperience?.metrics
+                  ?.EXPERIMENTAL_TIME_TO_FIRST_BYTE,
+              firstContentfulPaintMs:
+                result?.loadingExperience?.metrics?.FIRST_CONTENTFUL_PAINT_MS,
+              firstInputDelayMs:
+                result?.loadingExperience?.metrics?.FIRST_INPUT_DELAY_MS,
+              largestContentfulPaintMs:
+                result?.loadingExperience?.metrics?.LARGEST_CONTENTFUL_PAINT_MS,
+            },
+          });
 
-        const EXPERIMENTAL_TIME_TO_FIRST_BYTE =
-          result?.loadingExperience?.metrics?.EXPERIMENTAL_TIME_TO_FIRST_BYTE;
+          continue;
+        }
 
-        const FIRST_CONTENTFUL_PAINT_MS =
-          result?.loadingExperience?.metrics?.FIRST_CONTENTFUL_PAINT_MS;
-
-        const FIRST_INPUT_DELAY_MS =
-          result?.loadingExperience?.metrics?.FIRST_INPUT_DELAY_MS;
-
-        const LARGEST_CONTENTFUL_PAINT_MS =
-          result?.loadingExperience?.metrics?.LARGEST_CONTENTFUL_PAINT_MS;
-
-        data.push({
-          CUMULATIVE_LAYOUT_SHIFT_SCORE,
-          EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT,
-          EXPERIMENTAL_TIME_TO_FIRST_BYTE,
-          FIRST_CONTENTFUL_PAINT_MS,
-          FIRST_INPUT_DELAY_MS,
-          LARGEST_CONTENTFUL_PAINT_MS,
-        });
-
-        continue;
+        data.push(result);
+      } catch (error) {
+        console.log(chalk.red(error));
+        break;
       }
-
-      data.push(result);
     }
 
     res.status(200).json(data);
