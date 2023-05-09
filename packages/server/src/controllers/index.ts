@@ -1,1 +1,1 @@
-export * as MetricController from './Metric.controller';
+export * as PageSpeedController from './PageSpeed.controller';

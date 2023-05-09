@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import chalk from 'chalk';
 import { PAGESPEED_BASE_URL, GOOGLE_API_KEY } from '../config/constants';
 
-export const getSinglePageSpeedReport = async (req: Request, res: Response) => {
+export const getPageSpeedReport = async (req: Request, res: Response) => {
   try {
     const data = [];
 

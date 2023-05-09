@@ -5,7 +5,7 @@ import express, { Express } from 'express';
 import chalk from 'chalk';
 import cors from 'cors';
 
-import { metricRouter } from './routes';
+import { pageSpeedRouter } from './routes';
 
 import { corsOptions } from './config';
 
@@ -19,7 +19,7 @@ const PORT = process.env.PORT;
 app.use(express.json());
 app.use(cors(corsOptions));
 
-app.use('/api/v1/metrics', metricRouter);
+app.use('/api/v1/pagespeed', pageSpeedRouter);
 
 app.get('/hc', (req, res) => {
   res.send({ status: 'OK' });

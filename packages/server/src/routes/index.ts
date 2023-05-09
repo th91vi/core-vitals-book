@@ -1,1 +1,1 @@
-export { metricRouter } from './Metric.routes';
+export { pageSpeedRouter } from './PageSpeed.routes';
