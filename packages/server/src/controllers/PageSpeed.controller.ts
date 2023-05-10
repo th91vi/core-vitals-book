@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import chalk from 'chalk';
 import { PAGESPEED_BASE_URL, GOOGLE_API_KEY } from '../config/constants';
+import PageSpeedReport from '../models/PageSpeed.model';
 
-export const getPageSpeedReport = async (req: Request, res: Response) => {
+export const makePageSpeedReport = async (req: Request, res: Response) => {
   try {
     const data = [];
 
@@ -48,33 +49,27 @@ export const getPageSpeedReport = async (req: Request, res: Response) => {
           continue;
         }
 
-        if (reportOptions?.summary === 'true') {
-          data.push({
-            summary: {
-              url,
-              strategy,
-              cumulativeLayoutShiftScore:
-                result?.loadingExperience?.metrics
-                  ?.CUMULATIVE_LAYOUT_SHIFT_SCORE,
-              experimentalInteractionToNextPaint:
-                result?.loadingExperience?.metrics
-                  ?.EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT,
-              experimentalTimeToFirstByte:
-                result?.loadingExperience?.metrics
-                  ?.EXPERIMENTAL_TIME_TO_FIRST_BYTE,
-              firstContentfulPaintMs:
-                result?.loadingExperience?.metrics?.FIRST_CONTENTFUL_PAINT_MS,
-              firstInputDelayMs:
-                result?.loadingExperience?.metrics?.FIRST_INPUT_DELAY_MS,
-              largestContentfulPaintMs:
-                result?.loadingExperience?.metrics?.LARGEST_CONTENTFUL_PAINT_MS,
-            },
-          });
+        const entry = {
+          url,
+          strategy,
+          cumulativeLayoutShiftScore:
+            result?.loadingExperience?.metrics?.CUMULATIVE_LAYOUT_SHIFT_SCORE,
+          experimentalInteractionToNextPaint:
+            result?.loadingExperience?.metrics
+              ?.EXPERIMENTAL_INTERACTION_TO_NEXT_PAINT,
+          experimentalTimeToFirstByte:
+            result?.loadingExperience?.metrics?.EXPERIMENTAL_TIME_TO_FIRST_BYTE,
+          firstContentfulPaintMs:
+            result?.loadingExperience?.metrics?.FIRST_CONTENTFUL_PAINT_MS,
+          firstInputDelayMs:
+            result?.loadingExperience?.metrics?.FIRST_INPUT_DELAY_MS,
+          largestContentfulPaintMs:
+            result?.loadingExperience?.metrics?.LARGEST_CONTENTFUL_PAINT_MS,
+        };
 
-          continue;
-        }
+        await PageSpeedReport.create(entry);
 
-        data.push(result);
+        data.push(entry);
       } catch (error) {
         console.log(chalk.red(error));
         break;
@@ -82,6 +77,17 @@ export const getPageSpeedReport = async (req: Request, res: Response) => {
     }
 
     res.status(200).json(data);
+  } catch (error) {
+    console.log(chalk.red(error));
+    res.status(400).json(error);
+  }
+};
+
+export const getAllPageSpeedReports = async (req: Request, res: Response) => {
+  try {
+    const reports = await PageSpeedReport.find();
+
+    res.status(200).json(reports);
   } catch (error) {
     console.log(chalk.red(error));
     res.status(400).json(error);

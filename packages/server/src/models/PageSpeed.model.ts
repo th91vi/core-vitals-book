@@ -5,23 +5,26 @@ const pageSpeedReportSchema = new mongoose.Schema(
     url: {
       type: String,
     },
+    startegy: {
+      type: String,
+    },
     cumulativeLayoutShiftScore: {
-      type: Number,
+      type: Object,
     },
     experimentalInteractionToNextPaint: {
-      type: Number,
+      type: Object,
     },
     experimentalTimeToFirstByte: {
-      type: Number,
+      type: Object,
     },
     firstContentfulPaintMs: {
-      type: Number,
+      type: Object,
     },
     firstInputDelayMs: {
-      type: Number,
+      type: Object,
     },
     largestContentfulPaintMs: {
-      type: Number,
+      type: Object,
     },
   },
   {
